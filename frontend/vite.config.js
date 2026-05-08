@@ -11,10 +11,9 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
  plugins: [react(), tailwindcss()],
- root: "./src", // Add this - tells Vite that src is the root
  build: {
-  outDir: "../dist", // Add this - output to dist in project root
-  emptyOutDir: true, // Add this - clean dist before building
+  outDir: "dist",
+  emptyOutDir: true,
  },
  server: {
   proxy: {
