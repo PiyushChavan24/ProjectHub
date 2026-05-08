@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProjectHub – AWS Deployment Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #1e293b;
+      background: #fff;
+      padding: 40px 60px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Cover header ── */
+    .cover {
+      text-align: center;
+      padding: 36px 0 28px;
+      border-bottom: 3px solid #4f46e5;
+      margin-bottom: 32px;
+    }
+    .cover .badge {
+      display: inline-block;
+      background: #4f46e5;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+    .cover h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+    .cover .subtitle {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    /* ── Section headings ── */
+    h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #4f46e5;
+      margin: 28px 0 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      margin: 18px 0 6px;
+    }
+
+    p { margin: 6px 0; color: #334155; }
+
+    /* ── Steps ── */
+    .step {
+      display: flex;
+      gap: 14px;
+      margin: 14px 0;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      background: #4f46e5;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { color: #1e293b; }
+
+    /* ── Code blocks ── */
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 11.5px;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin: 10px 0;
+      page-break-inside: avoid;
+    }
+    code {
+      background: #f1f5f9;
+      color: #4f46e5;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 11.5px;
+    }
+    pre code { background: none; color: inherit; padding: 0; }
+
+    /* ── Comment lines in code ── */
+    .cm { color: #94a3b8; }
+
+    /* ── Info / tip boxes ── */
+    .info-box {
+      border-left: 4px solid #4f46e5;
+      background: #eef2ff;
+      padding: 10px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      font-size: 12.5px;
+      color: #3730a3;
+    }
+    .warn-box {
+      border-left: 4px solid #f59e0b;
+      background: #fffbeb;
+      padding: 10px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      font-size: 12.5px;
+      color: #92400e;
+    }
+
+    /* ── Cost table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 12.5px;
+    }
+    thead tr { background: #4f46e5; color: #fff; }
+    thead th { padding: 8px 14px; text-align: left; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody td { padding: 8px 14px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+
+    /* ── Architecture diagram ── */
+    .arch {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .arch-box {
+      text-align: center;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      min-width: 100px;
+    }
+    .arch-arrow {
+      font-size: 18px;
+      color: #94a3b8;
+      margin: 0 6px;
+    }
+    .box-user   { background: #e0f2fe; color: #0369a1; border: 1.5px solid #7dd3fc; }
+    .box-s3     { background: #fef9c3; color: #854d0e; border: 1.5px solid #fde047; }
+    .box-ec2    { background: #d1fae5; color: #065f46; border: 1.5px solid #6ee7b7; }
+    .box-mongo  { background: #ede9fe; color: #4c1d95; border: 1.5px solid #c4b5fd; }
+    .box-hf     { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* ── Print button (hidden when printing) ── */
+    .print-btn {
+      display: block;
+      margin: 0 auto 30px;
+      padding: 10px 28px;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    @media print {
+      .print-btn { display: none; }
+      body { padding: 20px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="print-btn" onclick="window.print()">Download as PDF</button>
+
+  <!-- ── Cover ── -->
+  <div class="cover">
+    <div class="badge">Deployment Guide</div>
+    <h1>ProjectHub — AWS Deployment</h1>
+    <p class="subtitle">React 19 + Express + MongoDB Atlas &nbsp;|&nbsp; Step-by-step production setup</p>
+  </div>
+
+  <!-- ── Architecture ── -->
+  <h2>Architecture Overview</h2>
+  <div class="arch">
+    <div class="arch-box box-user">Browser<br/><span style="font-weight:400;font-size:10.5px">User</span></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box box-ec2">EC2 (Ubuntu)<br/><span style="font-weight:400;font-size:10.5px">Express + React build</span></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box box-mongo">MongoDB Atlas<br/><span style="font-weight:400;font-size:10.5px">Cloud database</span></div>
+  </div>
+  <div class="arch">
+    <div class="arch-box box-ec2">EC2</div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box box-hf">HuggingFace Space<br/><span style="font-weight:400;font-size:10.5px">Plagiarism ML engine</span></div>
+  </div>
+
+  <div class="info-box">
+    <strong>Single-server approach:</strong> The React frontend is built into static files and served directly by Express. One EC2 instance handles everything — no separate hosting needed.
+  </div>
+
+  <!-- ── Step 1 ── -->
+  <h2>Step 1 — MongoDB Atlas (Database)</h2>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      Go to <strong>mongodb.com/atlas</strong> and create a free account.<br/>
+      Create a new <strong>M0 (free) cluster</strong> in any region.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      Under <strong>Network Access</strong>, add IP <code>0.0.0.0/0</code> (allow from anywhere).<br/>
+      Or whitelist only your EC2 instance's IP once it's launched.
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      Under <strong>Database Access</strong>, create a user with a password.<br/>
+      Copy the connection string — it looks like:
+      <pre><code>mongodb+srv://&lt;user&gt;:&lt;password&gt;@cluster0.xxxxx.mongodb.net/projecthub?retryWrites=true&w=majority</code></pre>
+    </div>
+  </div>
+
+  <!-- ── Step 2 ── -->
+  <h2>Step 2 — Build the React Frontend</h2>
+  <p>Run this on your local machine before uploading to the server:</p>
+  <pre><code>cd frontend
+npm install
+npm run build       <span class="cm"># produces frontend/dist/</span></code></pre>
+
+  <!-- ── Step 3 ── -->
+  <h2>Step 3 — Serve Frontend from Express</h2>
+  <p>Add these lines to your backend <code>server.js</code> / <code>app.js</code> <strong>after all API routes</strong>:</p>
+  <pre><code>const path = require('path');
+
+<span class="cm">// Serve the built React app</span>
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+<span class="cm">// All non-API routes return the React app (client-side routing)</span>
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});</code></pre>
+
+  <!-- ── Step 4 ── -->
+  <h2>Step 4 — Launch an EC2 Instance</h2>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">Open <strong>AWS Console → EC2 → Launch Instance</strong></div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      Choose <strong>Ubuntu Server 24.04 LTS</strong><br/>
+      Instance type: <strong>t2.micro</strong> (free tier eligible)
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">Create a new <strong>key pair</strong> (.pem file) — download and save it safely.</div>
+  </div>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      Configure <strong>Security Group</strong> — open these inbound ports:
+      <table style="margin-top:8px;">
+        <thead><tr><th>Port</th><th>Protocol</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>22</td><td>TCP</td><td>SSH access</td></tr>
+          <tr><td>80</td><td>TCP</td><td>HTTP (web traffic)</td></tr>
+          <tr><td>443</td><td>TCP</td><td>HTTPS (SSL)</td></tr>
+          <tr><td>3000</td><td>TCP</td><td>Node.js direct (testing)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">Click <strong>Launch Instance</strong>. Note the <strong>Public IPv4 address</strong>.</div>
+  </div>
+
+  <!-- ── Step 5 ── -->
+  <h2>Step 5 — Connect and Install Node.js</h2>
+  <pre><code><span class="cm"># Connect via SSH (from your local machine)</span>
+ssh -i your-key.pem ubuntu@&lt;EC2-PUBLIC-IP&gt;
+
+<span class="cm"># Install Node.js 20</span>
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+<span class="cm"># Verify</span>
+node -v    <span class="cm"># should print v20.x.x</span>
+npm -v
+
+<span class="cm"># Install PM2 (keeps Node running after SSH disconnect)</span>
+sudo npm install -g pm2</code></pre>
+
+  <!-- ── Step 6 ── -->
+  <h2>Step 6 — Upload Your Code</h2>
+  <p><strong>Option A — SCP (copy from local machine):</strong></p>
+  <pre><code>scp -i your-key.pem -r "e:/Review 2" ubuntu@&lt;EC2-PUBLIC-IP&gt;:~/app</code></pre>
+  <p><strong>Option B — Git (recommended):</strong></p>
+  <pre><code><span class="cm"># On EC2:</span>
+sudo apt-get install -y git
+git clone https://github.com/your-username/your-repo.git ~/app</code></pre>
+
+  <!-- ── Step 7 ── -->
+  <h2>Step 7 — Configure Environment &amp; Install Dependencies</h2>
+  <pre><code>cd ~/app/backend
+npm install
+
+<span class="cm"># Create the .env file</span>
+nano .env</code></pre>
+  <p>Paste the following into the editor (replace values with your own):</p>
+  <pre><code>PORT=3000
+MONGO_URI=mongodb+srv://&lt;user&gt;:&lt;password&gt;@cluster0.xxxxx.mongodb.net/projecthub
+JWT_SECRET=your_long_random_secret_here
+HF_TOKEN=hf_your_huggingface_token</code></pre>
+  <p>Save with <code>Ctrl+O</code>, then <code>Ctrl+X</code> to exit nano.</p>
+
+  <!-- ── Step 8 ── -->
+  <h2>Step 8 — Start the Application with PM2</h2>
+  <pre><code><span class="cm"># Start the server</span>
+pm2 start server.js --name projecthub
+
+<span class="cm"># Save PM2 config so it restarts after a server reboot</span>
+pm2 save
+
+<span class="cm"># Generate the startup script (copy and run the printed command)</span>
+pm2 startup
+
+<span class="cm"># Check status</span>
+pm2 status
+pm2 logs projecthub    <span class="cm"># view live logs</span></code></pre>
+
+  <p>Your app is now live at: <code>http://&lt;EC2-PUBLIC-IP&gt;:3000</code></p>
+
+  <!-- ── Step 9 ── -->
+  <h2>Step 9 — Route Port 80 to Node (No :3000 in URL)</h2>
+  <pre><code><span class="cm"># Redirect port 80 → 3000</span>
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
+
+<span class="cm"># Make the rule persist across reboots</span>
+sudo apt-get install -y iptables-persistent
+sudo netfilter-persistent save</code></pre>
+  <p>App is now at: <code>http://&lt;EC2-PUBLIC-IP&gt;</code></p>
+
+  <!-- ── Step 10 Optional ── -->
+  <h2>Step 10 — (Optional) Custom Domain + HTTPS</h2>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">Buy a domain (Route 53, Namecheap, GoDaddy, etc.) and set its <strong>A record</strong> to your EC2 Public IP.</div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">Install Nginx + Certbot for free HTTPS:
+      <pre><code>sudo apt install -y nginx certbot python3-certbot-nginx
+
+<span class="cm"># Get a free SSL certificate</span>
+sudo certbot --nginx -d yourdomain.com</code></pre>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">Certbot auto-configures Nginx. Your app will be available at <code>https://yourdomain.com</code></div>
+  </div>
+
+  <!-- ── Useful PM2 Commands ── -->
+  <h2>Useful Commands</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>pm2 status</code></td><td>See if the app is running</td></tr>
+      <tr><td><code>pm2 restart projecthub</code></td><td>Restart after a code update</td></tr>
+      <tr><td><code>pm2 logs projecthub</code></td><td>View live logs</td></tr>
+      <tr><td><code>pm2 stop projecthub</code></td><td>Stop the app</td></tr>
+      <tr><td><code>git pull &amp;&amp; pm2 restart projecthub</code></td><td>Deploy latest code</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ── Cost ── -->
+  <h2>Cost Estimate</h2>
+  <table>
+    <thead><tr><th>Service</th><th>Tier</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>EC2 t2.micro</td><td>Free Tier (12 months)</td><td>$0 → ~$9/mo after</td></tr>
+      <tr><td>MongoDB Atlas M0</td><td>Free Forever</td><td>$0 (512 MB)</td></tr>
+      <tr><td>HuggingFace Space</td><td>Free (CPU)</td><td>$0</td></tr>
+      <tr><td>Domain name</td><td>Optional</td><td>~$12/year</td></tr>
+      <tr><td>SSL Certificate</td><td>Let's Encrypt</td><td>$0</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-box">
+    <strong>Remember:</strong> The AWS free tier t2.micro expires after 12 months. Set a billing alert in AWS Console → Billing → Budgets so you are not charged unexpectedly.
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer">
+    ProjectHub &nbsp;|&nbsp; AWS Deployment Guide &nbsp;|&nbsp; Generated 2026
+  </div>
+
+</body>
+</html>
